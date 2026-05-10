@@ -994,7 +994,7 @@ function renderSchedule() {
 }
 
 /* ============================================================
-   SCOREBOARD RENDERING (WITH 2‑DIGIT FIX)
+   SCOREBOARD RENDERING (FINAL PATCH — MULTI‑DIGIT FIX)
    ============================================================ */
 const scoreboardContainer = document.getElementById("scoreboard-container");
 const scoreboardSummary = document.getElementById("scoreboard-summary");
@@ -1041,40 +1041,43 @@ function renderScoreboard() {
       const pA = match.playersA.map(pid => state.players.find(p => p.id === pid)?.name || `P${pid + 1}`).join(" & ");
       const pB = match.playersB.map(pid => state.players.find(p => p.id === pid)?.name || `P${pid + 1}`).join(" & ");
       label.textContent = `Ct ${match.court}: ${pA} vs ${pB}`;
-     
-const inputA = document.createElement("input");
-inputA.type = "text";                 // ← FIX: no more number spinner
-inputA.inputMode = "numeric";
-inputA.pattern = "[0-9]*";
-inputA.className = "score-input";
 
-const inputB = document.createElement("input");
-inputB.type = "text";                 // ← FIX: no more number spinner
-inputB.inputMode = "numeric";
-inputB.pattern = "[0-9]*";
-inputB.className = "score-input";
+      const inputA = document.createElement("input");
+      inputA.type = "text";                 // ← FIX: no spinner, multi-digit allowed
+      inputA.inputMode = "numeric";
+      inputA.pattern = "[0-9]*";
+      inputA.className = "score-input";
 
-inputA.addEventListener("input", () => {
-  inputA.value = inputA.value.replace(/[^0-9]/g, "");
-  const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
-  const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
-  state.scores[id] = { a, b };
-  saveState();
-  renderStandings();       // ← keep this
-  // renderScoreboard();   // ← REMOVE THIS LINE
-});
+      const inputB = document.createElement("input");
+      inputB.type = "text";                 // ← FIX: no spinner, multi-digit allowed
+      inputB.inputMode = "numeric";
+      inputB.pattern = "[0-9]*";
+      inputB.className = "score-input";
 
-inputB.addEventListener("input", () => {
-  inputB.value = inputB.value.replace(/[^0-9]/g, "");
-  const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
-  const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
-  state.scores[id] = { a, b };
-  saveState();
-  renderStandings();       // ← keep this
-  // renderScoreboard();   // ← REMOVE THIS LINE
-});
+      const id = matchId(round.roundIndex, match.matchIndex);
+      const existing = state.scores[id];
+      if (existing) {
+        if (existing.a != null) inputA.value = existing.a;
+        if (existing.b != null) inputB.value = existing.b;
+      }
 
+      inputA.addEventListener("input", () => {
+        inputA.value = inputA.value.replace(/[^0-9]/g, "");  // numeric only
+        const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
+        const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
+        state.scores[id] = { a, b };
+        saveState();
+        renderStandings();   // ← DO NOT re-render scoreboard
+      });
 
+      inputB.addEventListener("input", () => {
+        inputB.value = inputB.value.replace(/[^0-9]/g, "");  // numeric only
+        const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
+        const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
+        state.scores[id] = { a, b };
+        saveState();
+        renderStandings();   // ← DO NOT re-render scoreboard
+      });
 
       row.appendChild(label);
       row.appendChild(inputA);
@@ -1085,6 +1088,7 @@ inputB.addEventListener("input", () => {
     scoreboardContainer.appendChild(card);
   });
 }
+
 
 document.getElementById("btn-clear-scores").addEventListener("click", () => {
   if (!confirm("Clear all scores?")) return;
