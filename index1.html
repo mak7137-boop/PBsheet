@@ -1041,10 +1041,11 @@ function renderScoreboard() {
       const pA = match.playersA.map(pid => state.players.find(p => p.id === pid)?.name || `P${pid + 1}`).join(" & ");
       const pB = match.playersB.map(pid => state.players.find(p => p.id === pid)?.name || `P${pid + 1}`).join(" & ");
       label.textContent = `Ct ${match.court}: ${pA} vs ${pB}`;
-
+     
       const inputA = document.createElement("input");
       inputA.type = "number";
       inputA.min = "0";
+      inputA.step = "1";              // REQUIRED FIX
       inputA.inputMode = "numeric";
       inputA.pattern = "[0-9]*";
       inputA.className = "score-input";
@@ -1052,6 +1053,7 @@ function renderScoreboard() {
       const inputB = document.createElement("input");
       inputB.type = "number";
       inputB.min = "0";
+      inputB.step = "1";              // REQUIRED FIX
       inputB.inputMode = "numeric";
       inputB.pattern = "[0-9]*";
       inputB.className = "score-input";
@@ -1071,6 +1073,17 @@ function renderScoreboard() {
         renderStandings();
         renderScoreboard();
       });
+
+      inputB.addEventListener("input", () => {
+        const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
+        const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
+        state.scores[id] = { a, b };
+        saveState();
+        renderStandings();
+        renderScoreboard();
+      });
+
+
 
       inputB.addEventListener("input", () => {
         const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
