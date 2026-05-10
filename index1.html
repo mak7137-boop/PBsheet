@@ -1055,22 +1055,25 @@ inputB.pattern = "[0-9]*";
 inputB.className = "score-input";
 
 inputA.addEventListener("input", () => {
-  inputA.value = inputA.value.replace(/[^0-9]/g, "");  // numeric only
+  inputA.value = inputA.value.replace(/[^0-9]/g, "");
   const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
   const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
   state.scores[id] = { a, b };
   saveState();
-  renderStandings();
+  renderStandings();       // ← keep this
+  // renderScoreboard();   // ← REMOVE THIS LINE
 });
 
 inputB.addEventListener("input", () => {
-  inputB.value = inputB.value.replace(/[^0-9]/g, "");  // numeric only
+  inputB.value = inputB.value.replace(/[^0-9]/g, "");
   const a = inputA.value === "" ? null : parseInt(inputA.value, 10);
   const b = inputB.value === "" ? null : parseInt(inputB.value, 10);
   state.scores[id] = { a, b };
   saveState();
-  renderStandings();
+  renderStandings();       // ← keep this
+  // renderScoreboard();   // ← REMOVE THIS LINE
 });
+
 
 
       row.appendChild(label);
