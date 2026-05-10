@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Pickleball Round Robin Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+/* ========== GLOBAL ========== */
+:root {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --accent-dark: #1d4ed8;
+  --text: #111827;
+  --muted: #6b7280;
+  --danger: #dc2626;
+  --border: #e5e7eb;
+  --shadow-soft: 0 10px 25px rgba(15,23,42,0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ========== HEADER ========== */
+.app-header {
+  background: linear-gradient(135deg, #111827, #1f2937);
+  color: white;
+  padding: 12px 16px;
+  box-shadow: var(--shadow-soft);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.app-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+/* ========== TABS ========== */
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  background: #111827;
+  padding: 0 8px 4px;
+}
+
+.tab {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  margin: 4px 4px 0;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #e5e7eb;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+/* ========== LAYOUT ========== */
+.app-main {
+  padding: 12px;
+  max-width: 1100px;
+  margin: 0 auto 40px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ========== FORMS ========== */
+label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--muted);
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+button {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-dark);
+}
+
+.btn-outline {
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+/* ========== GRID / FLEX ========== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.col-2 {
+  flex: 1 1 120px;
+}
+
+.col-3 {
+  flex: 1 1 160px;
+}
+
+/* ========== NAMES ========== */
+.names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+/* ========== SCHEDULE ========== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.badge-muted {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.match-card {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #f9fafb;
+}
+
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.team-label {
+  font-weight: 600;
+}
+
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  font-size: 11px;
+  margin: 1px;
+}
+
+/* ========== SCOREBOARD ========== */
+.score-row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.7fr 0.7fr;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.score-row:last-child {
+  border-bottom: none;
+}
+
+.score-input {
+  width: 100%;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ========== TABLES ========== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+/* ========== EXPORT / UTILS ========== */
+textarea.export-area {
+  width: 100%;
+  min-height: 120px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (min-width: 768px) {
+  .card {
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 18px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1 class="app-title">Pickleball Round Robin Engine</h1>
+  <p class="app-subtitle">Flexible 2v2 individual round robin • floating byes • smart rotation • live standings</p>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="setup">Setup</div>
+  <div class="tab" data-tab="names">Player Names</div>
+  <div class="tab" data-tab="schedule">Schedule</div>
+  <div class="tab" data-tab="scoreboard">Scoreboard</div>
+  <div class="tab" data-tab="standings">Standings</div>
+  <div class="tab" data-tab="export">Export</div>
+</nav>
+
+<main class="app-main">
+
+  <!-- ========== TAB: SETUP ========== -->
+  <section class="tab-panel" id="tab-setup">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Event Setup</div>
+          <div class="card-subtitle">Choose players, rounds, courts, and match density.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-2">
+          <label for="playerCount">Number of players</label>
+          <input type="number" id="playerCount" min="4" max="40" value="12" />
+        </div>
+        <div class="col-2">
+          <label for="roundCount">Number of rounds</label>
+          <input type="number" id="roundCount" min="1" max="20" value="5" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-2">
+          <label for="courtCount">Number of courts</label>
+          <input type="number" id="courtCount" min="1" max="10" value="3" />
+        </div>
+        <div class="col-2">
+          <label for="matchesPerRound">Matches per round (max)</label>
+          <input type="number" id="matchesPerRound" min="1" max="10" value="3" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-3">
+          <label for="eventName">Event name (optional)</label>
+          <input type="text" id="eventName" placeholder="Tuesday Night Round Robin" />
+        </div>
+      </div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-setup-next">
+          Next: Player Names
+        </button>
+        <button class="btn-outline" id="btn-setup-reset">
+          Reset All
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: NAMES ========== -->
+  <section class="tab-panel" id="tab-names" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Player Names</div>
+          <div class="card-subtitle">Enter or edit player names. Blank names will be auto‑filled.</div>
+        </div>
+        <div class="badge-muted" id="names-summary"></div>
+      </div>
+
+      <div class="names-grid" id="names-grid"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-generate-schedule">
+          Generate Schedule
+        </button>
+        <button class="btn-outline" id="btn-auto-fill-names">
+          Auto‑fill empty names
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: SCHEDULE ========== -->
+  <section class="tab-panel" id="tab-schedule" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Schedule</div>
+          <div class="card-subtitle">Rounds, courts, matches, and assignments.</div>
+        </div>
+        <div class="badge-muted" id="schedule-summary"></div>
+      </div>
+
+      <div id="schedule-container"></div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: SCOREBOARD ========== -->
+  <section class="tab-panel" id="tab-scoreboard" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Scoreboard</div>
+          <div class="card-subtitle">Enter scores for each match. Data auto‑saves in this browser.</div>
+        </div>
+        <div class="badge-muted" id="scoreboard-summary"></div>
+      </div>
+
+      <div id="scoreboard-container"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-outline" id="btn-clear-scores">
+          Clear all scores
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: STANDINGS ========== -->
+  <section class="tab-panel" id="tab-standings" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Standings & Player Stats</div>
+          <div class="card-subtitle">Live stats based on entered scores.</div>
+        </div>
+      </div>
+
+      <div id="standings-container"></div>
+    </div>
+  </section>
+
+  <!-- ========== TAB: EXPORT ========== -->
+  <section class="tab-panel" id="tab-export" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Export & Share</div>
+          <div class="card-subtitle">Copy CSV, print schedule, or share the page URL.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <button class="btn-primary" id="btn-generate-csv">
+          Generate CSV from schedule & scores
+        </button>
+        <button class="btn-outline" id="btn-print">
+          Print schedule / standings
+        </button>
+      </div>
+
+      <label for="exportArea">CSV / text export</label>
+      <textarea id="exportArea" class="export-area" placeholder="Click 'Generate CSV' to populate this area."></textarea>
+
+      <p style="font-size:12px; color:var(--muted); margin-top:8px;">
+        To share this tool, just send your GitHub Pages URL. Most apps will auto‑link it so players can tap and open it.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  players: [],
+  rounds: [],
+  scores: {},
+  config: {
+    playerCount: 12,
+    roundCount: 5,
+    courtCount: 3,
+    matchesPerRound: 3,
+    eventName: ""
+  }
+};
+
+const STORAGE_KEY = "pb_engine_state_v1";
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function saveState() {
+  try {
+    const data = {
+      players: state.players,
+      rounds: state.rounds,
+      scores: state.scores,
+      config: state.config
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn("Could not save state", e);
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.players) state.players = data.players;
+    if (data.rounds) state.rounds = data.rounds;
+    if (data.scores) state.scores = data.scores;
+    if (data.config) state.config = data.config;
+  } catch (e) {
+    console.warn("Could not load state", e);
+  }
+}
+
+function resetState() {
+  state.players = [];
+  state.rounds = [];
+  state.scores = {};
+  state.config = {
+    playerCount: 12,
+    roundCount: 5,
+    courtCount: 3,
+    matchesPerRound: 3,
+    eventName: ""
+  };
+  saveState();
+}
+
+function matchId(roundIndex, matchIndex) {
+  return `r${roundIndex}_m${matchIndex}`;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+const tabButtons = document.querySelectorAll(".tab");
+const tabPanels = document.querySelectorAll(".tab-panel");
+
+function showTab(name) {
+  tabButtons.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === name);
+  });
+  tabPanels.forEach(panel => {
+    panel.style.display = panel.id === `tab-${name}` ? "block" : "none";
+  });
+}
+
+tabButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    showTab(btn.dataset.tab);
+  });
+});
+
+/* ============================================================
+   SETUP UI
+   ============================================================ */
+const playerCountInput = document.getElementById("playerCount");
+const roundCountInput = document.getElementById("roundCount");
+const courtCountInput = document.getElementById("court
