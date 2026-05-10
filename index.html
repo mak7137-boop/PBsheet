@@ -177,3 +177,232 @@ button {
   background: var(--danger);
   color: white;
 }
+/* ============================================================
+   GRID / FLEX
+   ============================================================ */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.col-2 {
+  flex: 1 1 120px;
+}
+
+.col-3 {
+  flex: 1 1 160px;
+}
+
+/* ============================================================
+   PLAYER NAMES GRID
+   ============================================================ */
+.names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+/* ============================================================
+   SCHEDULE
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.badge-muted {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.match-card {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #f9fafb;
+}
+
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.team-label {
+  font-weight: 600;
+}
+
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  font-size: 11px;
+  margin: 1px;
+}
+
+/* ============================================================
+   SCOREBOARD
+   ============================================================ */
+.score-row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.7fr 0.7fr;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.score-row:last-child {
+  border-bottom: none;
+}
+
+.score-input {
+  width: 100%;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+/* ============================================================
+   EXPORT AREA
+   ============================================================ */
+textarea.export-area {
+  width: 100%;
+  min-height: 120px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 768px) {
+  .card {
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 18px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="app-header">
+  <h1 class="app-title">Pickleball Round Robin Engine</h1>
+  <p class="app-subtitle">Flexible 2v2 individual round robin • floating byes • smart rotation • live standings</p>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="setup">Setup</div>
+  <div class="tab" data-tab="names">Player Names</div>
+  <div class="tab" data-tab="schedule">Schedule</div>
+  <div class="tab" data-tab="scoreboard">Scoreboard</div>
+  <div class="tab" data-tab="standings">Standings</div>
+  <div class="tab" data-tab="export">Export</div>
+</nav>
+
+<main class="app-main">
+
+  <!-- ============================================================
+       TAB: SETUP
+       ============================================================ -->
+  <section class="tab-panel" id="tab-setup">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Event Setup</div>
+          <div class="card-subtitle">Choose players, rounds, courts, and match density.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-2">
+          <label for="playerCount">Number of players</label>
+          <input type="number" id="playerCount" min="4" max="40" value="12" />
+        </div>
+        <div class="col-2">
+          <label for="roundCount">Number of rounds</label>
+          <input type="number" id="roundCount" min="1" max="20" value="5" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-2">
+          <label for="courtCount">Number of courts</label>
+          <input type="number" id="courtCount" min="1" max="10" value="3" />
+        </div>
+        <div class="col-2">
+          <label for="matchesPerRound">Matches per round (max)</label>
+          <input type="number" id="matchesPerRound" min="1" max="10" value="3" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-3">
+          <label for="eventName">Event name (optional)</label>
+          <input type="text" id="eventName" placeholder="Tuesday Night Round Robin" />
+        </div>
+      </div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-setup-next">
+          Next: Player Names
+        </button>
+        <button class="btn-outline" id="btn-setup-reset">
+          Reset All
+        </button>
+      </div>
+    </div>
+  </section>
