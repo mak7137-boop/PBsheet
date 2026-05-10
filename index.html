@@ -406,3 +406,247 @@ textarea.export-area {
       </div>
     </div>
   </section>
+  <!-- ============================================================
+       TAB: PLAYER NAMES
+       ============================================================ -->
+  <section class="tab-panel" id="tab-names" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Player Names</div>
+          <div class="card-subtitle">Enter or edit player names. Blank names will be auto‑filled.</div>
+        </div>
+        <div class="badge-muted" id="names-summary"></div>
+      </div>
+
+      <div class="names-grid" id="names-grid"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-generate-schedule">
+          Generate Schedule
+        </button>
+        <button class="btn-outline" id="btn-auto-fill-names">
+          Auto‑fill empty names
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: SCHEDULE
+       ============================================================ -->
+  <section class="tab-panel" id="tab-schedule" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Schedule</div>
+          <div class="card-subtitle">Rounds, courts, matches, and assignments.</div>
+        </div>
+        <div class="badge-muted" id="schedule-summary"></div>
+      </div>
+
+      <div id="schedule-container"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: SCOREBOARD
+       ============================================================ -->
+  <section class="tab-panel" id="tab-scoreboard" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Scoreboard</div>
+          <div class="card-subtitle">Enter scores for each match. Data auto‑saves in this browser.</div>
+        </div>
+        <div class="badge-muted" id="scoreboard-summary"></div>
+      </div>
+
+      <div id="scoreboard-container"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-outline" id="btn-clear-scores">
+          Clear all scores
+        </button>
+      </div>
+    </div>
+  </section>
+  <!-- ============================================================
+       TAB: PLAYER NAMES
+       ============================================================ -->
+  <section class="tab-panel" id="tab-names" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Player Names</div>
+          <div class="card-subtitle">Enter or edit player names. Blank names will be auto‑filled.</div>
+        </div>
+        <div class="badge-muted" id="names-summary"></div>
+      </div>
+
+      <div class="names-grid" id="names-grid"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-generate-schedule">
+          Generate Schedule
+        </button>
+        <button class="btn-outline" id="btn-auto-fill-names">
+          Auto‑fill empty names
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: SCHEDULE
+       ============================================================ -->
+  <section class="tab-panel" id="tab-schedule" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Schedule</div>
+          <div class="card-subtitle">Rounds, courts, matches, and assignments.</div>
+        </div>
+        <div class="badge-muted" id="schedule-summary"></div>
+      </div>
+
+      <div id="schedule-container"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: SCOREBOARD
+       ============================================================ -->
+  <section class="tab-panel" id="tab-scoreboard" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Scoreboard</div>
+          <div class="card-subtitle">Enter scores for each match. Data auto‑saves in this browser.</div>
+        </div>
+        <div class="badge-muted" id="scoreboard-summary"></div>
+      </div>
+
+      <div id="scoreboard-container"></div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-outline" id="btn-clear-scores">
+          Clear all scores
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: STANDINGS
+       ============================================================ -->
+  <section class="tab-panel" id="tab-standings" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Standings & Player Stats</div>
+          <div class="card-subtitle">Live stats based on entered scores.</div>
+        </div>
+      </div>
+
+      <div id="standings-container"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TAB: EXPORT
+       ============================================================ -->
+  <section class="tab-panel" id="tab-export" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Export & Share</div>
+          <div class="card-subtitle">Copy CSV, print schedule, or share the page URL.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <button class="btn-primary" id="btn-generate-csv">
+          Generate CSV from schedule & scores
+        </button>
+        <button class="btn-outline" id="btn-print">
+          Print schedule / standings
+        </button>
+      </div>
+
+      <label for="exportArea">CSV / text export</label>
+      <textarea id="exportArea" class="export-area" placeholder="Click 'Generate CSV' to populate this area."></textarea>
+
+      <p style="font-size:12px; color:var(--muted); margin-top:8px;">
+        To share this tool, just send your GitHub Pages URL. Most apps will auto‑link it so players can tap and open it.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  players: [],
+  rounds: [],
+  scores: {},
+  config: {
+    playerCount: 12,
+    roundCount: 5,
+    courtCount: 3,
+    matchesPerRound: 3,
+    eventName: ""
+  }
+};
+
+const STORAGE_KEY = "pb_engine_state_v1";
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function saveState() {
+  try {
+    const data = {
+      players: state.players,
+      rounds: state.rounds,
+      scores: state.scores,
+      config: state.config
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn("Could not save state", e);
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.players) state.players = data.players;
+    if (data.rounds) state.rounds = data.rounds;
+    if (data.scores) state.scores = data.scores;
+    if (data.config) state.config = data.config;
+  } catch (e) {
+    console.warn("Could not load state", e);
+  }
+}
+
+function resetState() {
+  state.players = [];
+  state.rounds = [];
+  state.scores = {};
+  state.config = {
+    playerCount: 12,
+    roundCount: 5,
+    courtCount: 3,
+    matchesPerRound: 3,
+    eventName: ""
+  };
+  saveState();
+}
+
+  
