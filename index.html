@@ -648,5 +648,183 @@ function resetState() {
   };
   saveState();
 }
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+function switchTab(tabName) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === tabName);
+  });
+
+  document.querySelectorAll(".tab-panel").forEach(p => {
+    p.style.display = p.id === `tab-${tabName}` ? "block" : "none";
+  });
+
+  saveState();
+}
+
+/* ============================================================
+   INITIALIZE SETUP FIELDS
+   ============================================================ */
+function applyConfigToInputs() {
+  document.getElementById("playerCount").value = state.config.playerCount;
+  document.getElementById("roundCount").value = state.config.roundCount;
+  document.getElementById("courtCount").value = state.config.courtCount;
+  document.getElementById("matchesPerRound").value = state.config.matchesPerRound;
+  document.getElementById("eventName").value = state.config.eventName;
+}
+
+/* ============================================================
+   PLAYER NAME GRID
+   ============================================================ */
+function renderNameInputs() {
+  const grid = document.getElementById("names-grid");
+  grid.innerHTML = "";
+
+  for (let i = 0; i < state.config.playerCount; i++) {
+    const val = state.players[i] || "";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = `Player ${i + 1}`;
+    input.value = val;
+    input.dataset.index = i;
+
+    input.addEventListener("input", () => {
+      state.players[i] = input.value.trim();
+      saveState();
+      updateNameSummary();
+    });
+
+    grid.appendChild(input);
+  }
+
+  updateNameSummary();
+}
+
+function updateNameSummary() {
+  const filled = state.players.filter(n => n && n.trim() !== "").length;
+  const total = state.config.playerCount;
+  document.getElementById("names-summary").textContent = `${filled}/${total} named`;
+}
+
+/* ============================================================
+   AUTO-FILL NAMES
+   ============================================================ */
+function autoFillNames() {
+  for (let i = 0; i < state.config.playerCount; i++) {
+    if (!state.players[i] || state.players[i].trim() === "") {
+      state.players[i] = `Player ${i + 1}`;
+    }
+  }
+  renderNameInputs();
+  saveState();
+}
+
+/* ============================================================
+   SCHEDULE GENERATION
+   ============================================================ */
+function generateSchedule() {
+  const P = state.config.playerCount;
+  const R = state.config.roundCount;
+  const C = state.config.courtCount;
+  const M = state.config.matchesPerRound;
+
+  const players = [...Array(P).keys()];
+
+  const rounds = [];
+
+  for (let r = 0; r < R; r++) {
+    const roundMatches = [];
+    const used = new Set();
+
+    for (let m = 0; m < M; m++) {
+      const available = players.filter(p => !used.has(p));
+      if (available.length < 4) break;
+
+      const p1 = available[0];
+      const p2 = available[1];
+      const p3 = available[2];
+      const p4 = available[3];
+
+      used.add(p1);
+      used.add(p2);
+      used.add(p3);
+      used.add(p4);
+
+      roundMatches.push({
+        court: (m % C) + 1,
+        teamA: [p1, p2],
+        teamB: [p3, p4]
+      });
+    }
+
+    rounds.push(roundMatches);
+  }
+
+  state.rounds = rounds;
+  saveState();
+  renderSchedule();
+  renderScoreboard();
+  renderStandings();
+  updateScheduleSummary();
+}
+
+function updateScheduleSummary() {
+  const totalMatches = state.rounds.reduce((sum, r) => sum + r.length, 0);
+  document.getElementById("schedule-summary").textContent =
+    `${state.rounds.length} rounds • ${totalMatches} matches`;
+}
+
+/* ============================================================
+   RENDER SCHEDULE
+   ============================================================ */
+function renderSchedule() {
+  const container = document.getElementById("schedule-container");
+  container.innerHTML = "";
+
+  state.rounds.forEach((round, rIndex) => {
+    const roundCard = document.createElement("div");
+    roundCard.className = "card";
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.innerHTML = `
+      <div>
+        <div class="card-title">Round ${rIndex + 1}</div>
+        <div class="card-subtitle">${round.length} matches</div>
+      </div>
+    `;
+    roundCard.appendChild(header);
+
+    round.forEach((match, mIndex) => {
+      const matchDiv = document.createElement("div");
+      matchDiv.className = "match-card";
+
+      const h = document.createElement("div");
+      h.className = "match-header";
+      h.innerHTML = `
+        <span>Court ${match.court}</span>
+        <span class="badge-muted">Match ${mIndex + 1}</span>
+      `;
+      matchDiv.appendChild(h);
+
+      const teams = document.createElement("div");
+      teams.className = "match-teams";
+
+      const teamA = match.teamA.map(i => playerName(i)).join(", ");
+      const teamB = match.teamB.map(i => playerName(i)).join(", ");
+
+      teams.innerHTML = `
+        <div><span class="team-label">A:</span> ${teamA}</div>
+        <div><span class="team-label">B:</span> ${teamB}</div>
+      `;
+
+      matchDiv.appendChild(teams);
+      roundCard.appendChild(matchDiv);
+    });
+
+    container.appendChild(roundCard);
+  });
+}
 
   
