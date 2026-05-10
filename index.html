@@ -826,5 +826,278 @@ function renderSchedule() {
     container.appendChild(roundCard);
   });
 }
+/* ============================================================
+   PLAYER NAME HELPER
+   ============================================================ */
+function playerName(i) {
+  return state.players[i] && state.players[i].trim() !== ""
+    ? state.players[i]
+    : `Player ${i + 1}`;
+}
 
-  
+/* ============================================================
+   SCOREBOARD RENDERING
+   ============================================================ */
+function renderScoreboard() {
+  const container = document.getElementById("scoreboard-container");
+  container.innerHTML = "";
+
+  state.rounds.forEach((round, rIndex) => {
+    const roundCard = document.createElement("div");
+    roundCard.className = "card";
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.innerHTML = `
+      <div>
+        <div class="card-title">Round ${rIndex + 1}</div>
+        <div class="card-subtitle">${round.length} matches</div>
+      </div>
+    `;
+    roundCard.appendChild(header);
+
+    round.forEach((match, mIndex) => {
+      const row = document.createElement("div");
+      row.className = "score-row";
+
+      const label = document.createElement("div");
+      label.textContent =
+        `${playerName(match.teamA[0])}, ${playerName(match.teamA[1])}  vs  ` +
+        `${playerName(match.teamB[0])}, ${playerName(match.teamB[1])}`;
+      row.appendChild(label);
+
+      const keyA = `r${rIndex}_m${mIndex}_A`;
+      const keyB = `r${rIndex}_m${mIndex}_B`;
+
+      const inputA = document.createElement("input");
+      inputA.type = "text";
+      inputA.className = "score-input";
+      inputA.value = state.scores[keyA] ?? "";
+      inputA.addEventListener("input", () => {
+        state.scores[keyA] = inputA.value.trim();
+        saveState();
+        renderStandings();
+      });
+
+      const inputB = document.createElement("input");
+      inputB.type = "text";
+      inputB.className = "score-input";
+      inputB.value = state.scores[keyB] ?? "";
+      inputB.addEventListener("input", () => {
+        state.scores[keyB] = inputB.value.trim();
+        saveState();
+        renderStandings();
+      });
+
+      row.appendChild(inputA);
+      row.appendChild(inputB);
+
+      roundCard.appendChild(row);
+    });
+
+    container.appendChild(roundCard);
+  });
+
+  updateScoreboardSummary();
+}
+/* ============================================================
+   PLAYER NAME HELPER
+   ============================================================ */
+function playerName(i) {
+  return state.players[i] && state.players[i].trim() !== ""
+    ? state.players[i]
+    : `Player ${i + 1}`;
+}
+
+/* ============================================================
+   SCOREBOARD RENDERING
+   ============================================================ */
+function renderScoreboard() {
+  const container = document.getElementById("scoreboard-container");
+  container.innerHTML = "";
+
+  state.rounds.forEach((round, rIndex) => {
+    const roundCard = document.createElement("div");
+    roundCard.className = "card";
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.innerHTML = `
+      <div>
+        <div class="card-title">Round ${rIndex + 1}</div>
+        <div class="card-subtitle">${round.length} matches</div>
+      </div>
+    `;
+    roundCard.appendChild(header);
+
+    round.forEach((match, mIndex) => {
+      const row = document.createElement("div");
+      row.className = "score-row";
+
+      const label = document.createElement("div");
+      label.textContent =
+        `${playerName(match.teamA[0])}, ${playerName(match.teamA[1])}  vs  ` +
+        `${playerName(match.teamB[0])}, ${playerName(match.teamB[1])}`;
+      row.appendChild(label);
+
+      const keyA = `r${rIndex}_m${mIndex}_A`;
+      const keyB = `r${rIndex}_m${mIndex}_B`;
+
+      const inputA = document.createElement("input");
+      inputA.type = "text";
+      inputA.className = "score-input";
+      inputA.value = state.scores[keyA] ?? "";
+      inputA.addEventListener("input", () => {
+        state.scores[keyA] = inputA.value.trim();
+        saveState();
+        renderStandings();
+      });
+
+      const inputB = document.createElement("input");
+      inputB.type = "text";
+      inputB.className = "score-input";
+      inputB.value = state.scores[keyB] ?? "";
+      inputB.addEventListener("input", () => {
+        state.scores[keyB] = inputB.value.trim();
+        saveState();
+        renderStandings();
+      });
+
+      row.appendChild(inputA);
+      row.appendChild(inputB);
+
+      roundCard.appendChild(row);
+    });
+
+    container.appendChild(roundCard);
+  });
+
+  updateScoreboardSummary();
+}
+
+function updateScoreboardSummary() {
+  const total = Object.keys(state.scores).length;
+  document.getElementById("scoreboard-summary").textContent =
+    `${total} score fields saved`;
+}
+
+/* ============================================================
+   CLEAR SCORES
+   ============================================================ */
+function clearScores() {
+  if (!confirm("Clear ALL scores? This cannot be undone.")) return;
+  state.scores = {};
+  saveState();
+  renderScoreboard();
+  renderStandings();
+}
+
+/* ============================================================
+   STANDINGS CALCULATION
+   ============================================================ */
+function calculateStandings() {
+  const stats = {};
+
+  for (let i = 0; i < state.config.playerCount; i++) {
+    stats[i] = {
+      name: playerName(i),
+      games: 0,
+      wins: 0,
+      pointsFor: 0,
+      pointsAgainst: 0,
+      diff: 0
+    };
+  }
+
+  state.rounds.forEach((round, rIndex) => {
+    round.forEach((match, mIndex) => {
+      const keyA = `r${rIndex}_m${mIndex}_A`;
+      const keyB = `r${rIndex}_m${mIndex}_B`;
+
+      const sA = parseInt(state.scores[keyA]);
+      const sB = parseInt(state.scores[keyB]);
+
+      if (isNaN(sA) || isNaN(sB)) return;
+
+      const playersA = match.teamA;
+      const playersB = match.teamB;
+
+      playersA.forEach(p => {
+        stats[p].games++;
+        stats[p].pointsFor += sA;
+        stats[p].pointsAgainst += sB;
+      });
+
+      playersB.forEach(p => {
+        stats[p].games++;
+        stats[p].pointsFor += sB;
+        stats[p].pointsAgainst += sA;
+      });
+
+      if (sA > sB) {
+        playersA.forEach(p => stats[p].wins++);
+      } else if (sB > sA) {
+        playersB.forEach(p => stats[p].wins++);
+      }
+    });
+  });
+
+  for (let i = 0; i < state.config.playerCount; i++) {
+    stats[i].diff = stats[i].pointsFor - stats[i].pointsAgainst;
+  }
+
+  const arr = Object.values(stats);
+  arr.sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    if (b.diff !== a.diff) return b.diff - a.diff;
+    return b.pointsFor - a.pointsFor;
+  });
+
+  return arr;
+}
+
+/* ============================================================
+   RENDER STANDINGS
+   ============================================================ */
+function renderStandings() {
+  const container = document.getElementById("standings-container");
+  container.innerHTML = "";
+
+  const standings = calculateStandings();
+
+  const table = document.createElement("table");
+  table.className = "table";
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>GP</th>
+        <th>W</th>
+        <th>PF</th>
+        <th>PA</th>
+        <th>Diff</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  `;
+
+  const tbody = table.querySelector("tbody");
+
+  standings.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.name}</td>
+      <td>${s.games}</td>
+      <td>${s.wins}</td>
+      <td>${s.pointsFor}</td>
+      <td>${s.pointsAgainst}</td>
+      <td>${s.diff}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  container.appendChild(table);
+}
+
