@@ -1100,4 +1100,99 @@ function renderStandings() {
 
   container.appendChild(table);
 }
+/* ============================================================
+   EXPORT CSV
+   ============================================================ */
+function generateCSV() {
+  let csv = "Round,Match,Court,TeamA,TeamB,ScoreA,ScoreB\n";
+
+  state.rounds.forEach((round, rIndex) => {
+    round.forEach((match, mIndex) => {
+      const keyA = `r${rIndex}_m${mIndex}_A`;
+      const keyB = `r${rIndex}_m${mIndex}_B`;
+
+      const sA = state.scores[keyA] ?? "";
+      const sB = state.scores[keyB] ?? "";
+
+      const teamA = match.teamA.map(i => playerName(i)).join(" & ");
+      const teamB = match.teamB.map(i => playerName(i)).join(" & ");
+
+      csv += `${rIndex + 1},${mIndex + 1},${match.court},` +
+             `"${teamA}","${teamB}",${sA},${sB}\n`;
+    });
+  });
+
+  document.getElementById("exportArea").value = csv;
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+function printPage() {
+  window.print();
+}
+
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+function attachEventListeners() {
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+  });
+
+  document.getElementById("btn-setup-next").addEventListener("click", () => {
+    state.config.playerCount = parseInt(document.getElementById("playerCount").value);
+    state.config.roundCount = parseInt(document.getElementById("roundCount").value);
+    state.config.courtCount = parseInt(document.getElementById("courtCount").value);
+    state.config.matchesPerRound = parseInt(document.getElementById("matchesPerRound").value);
+    state.config.eventName = document.getElementById("eventName").value.trim();
+
+    saveState();
+    renderNameInputs();
+    switchTab("names");
+  });
+
+  document.getElementById("btn-setup-reset").addEventListener("click", () => {
+    if (!confirm("Reset ALL data? This cannot be undone.")) return;
+    resetState();
+    applyConfigToInputs();
+    renderNameInputs();
+    renderSchedule();
+    renderScoreboard();
+    renderStandings();
+    switchTab("setup");
+  });
+
+  document.getElementById("btn-auto-fill-names").addEventListener("click", autoFillNames);
+
+  document.getElementById("btn-generate-schedule").addEventListener("click", () => {
+    generateSchedule();
+    switchTab("schedule");
+  });
+
+  document.getElementById("btn-clear-scores").addEventListener("click", clearScores);
+
+  document.getElementById("btn-generate-csv").addEventListener("click", generateCSV);
+
+  document.getElementById("btn-print").addEventListener("click", printPage);
+}
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+function init() {
+  loadState();
+  applyConfigToInputs();
+  renderNameInputs();
+  renderSchedule();
+  renderScoreboard();
+  renderStandings();
+  attachEventListeners();
+}
+
+init();
+</script>
+
+</body>
+</html>
 
